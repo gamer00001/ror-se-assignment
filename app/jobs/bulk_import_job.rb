@@ -1,13 +1,15 @@
 class BulkImportJob < ApplicationJob
   queue_as :default
 
+  CHUNK_SIZE = (ENV['CHUNK_SIZE'].presence || 1000).to_i
+
   def perform(user_id, file_path, file_name)
     user = User.find_by(id: user_id)
     return unless user.present?
 
     invalid_rows = 0
     begin
-      SmarterCSV.process(file_path, chunk_size: 1000, remove_empty_hashes: true) do |chunk|
+      SmarterCSV.process(file_path, chunk_size: CHUNK_SIZE, remove_empty_hashes: true) do |chunk|
         blogs = []
         ActiveRecord::Base.transaction do
           chunk.each do |row|
@@ -23,12 +25,32 @@ class BulkImportJob < ApplicationJob
         end
       end
 
+      NotifcationChannel.broadcast_to(
+        user,
+        { message: "#{file_name} file is processed with #{invalid_rows} invalid rows.", success: true}
+      )
+
     rescue SmarterCSV::SmarterCSVException => e
-      Rails.logger.error("Error while processing the file: #{e.message}")
+
+      NotifcationChannel.broadcast_to(
+        user,
+        { message: "Error while processing file #{file_name}. Error: #{e.message}", success: false }
+      )
+
     rescue ActiveRecord::StatementInvalid => e
-      Rails.logger.error("Error while inserting records: #{e.message}")
+
+      NotifcationChannel.broadcast_to(
+        user,
+        { message: "Error while inserting the records from file #{file_name}. Error: #{e.message}", success: false }
+      )
+
     rescue StandardError => e
-      Rails.logger.error("Unexpected error occured while processing the job: #{e.message}")
+
+      NotifcationChannel.broadcast_to(
+        user,
+        { message: "Unexpected error while processing file #{file_name}. Error: #{e.message}", success: false }
+      )
+
     ensure
       File.delete(file_path) if File.exist?(file_path)
     end
