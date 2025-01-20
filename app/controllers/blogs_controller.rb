@@ -1,13 +1,12 @@
-require 'csv'
 class BlogsController < ApplicationController
   before_action :authenticate_user!
   before_action :set_blog, only: %i[ show edit update destroy ]
+  before_action :validate_file, only: [:import]
 
   # GET /blogs or /blogs.json
   def index
     # @blogs = current_user.blogs
     @pagy, @blogs = pagy(current_user.blogs)
-
   end
 
   # GET /blogs/1 or /blogs/1.json
@@ -62,16 +61,11 @@ class BlogsController < ApplicationController
   end
 
   def import
-    file = params[:attachment]
-    data = CSV.parse(file.to_io, headers: true, encoding: 'utf8')
-    # Start code to handle CSV data
-    ActiveRecord::Base.transaction do
-      data.each do |row|
-        current_user.blogs.create!(row.to_h)
-      end
-    end
-    # End code to handle CSV data
-    redirect_to blogs_path
+    temp_file_path = Rails.root.join('tmp', "#{@file.original_filename}_#{SecureRandom.uuid}.csv")
+    File.open(temp_file_path, 'wb') { |f| f.write(@file.read) }
+    BulkImportJob.perform_later(current_user.id, temp_file_path.to_s, @file.original_filename)
+
+    redirect_to blogs_path, notice: 'Your file is being processed. You will be notified once the import is complete.'
   end
 
   private
@@ -84,4 +78,22 @@ class BlogsController < ApplicationController
     def blog_params
       params.require(:blog).permit(:title, :body, :user_id)
     end
+
+    def validate_file
+      @file = params[:attachment]
+    
+      unless @file
+        redirect_to blogs_path, alert: 'No file uploaded. Please upload a CSV file.'
+        return
+      end
+    
+      unless valid_csv?(@file)
+        redirect_to blogs_path, alert: 'Please upload a valid CSV file.'
+        return
+      end
+    end
+        
+    def valid_csv?(file)
+      %w[text/csv application/csv].include?(file.content_type)
+    end 
 end

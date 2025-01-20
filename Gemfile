@@ -55,12 +55,13 @@ gem "bootsnap"
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
   gem "debug", platforms: %i[ mri mingw x64_mingw ]
+  gem 'dotenv-rails'
 end
 
 group :development do
   # Use console on exceptions pages [https://github.com/rails/web-console]
   gem "web-console"
-
+  gem 'foreman', '~> 0.88.1'
   # Add speed badges [https://github.com/MiniProfiler/rack-mini-profiler]
   # gem "rack-mini-profiler"
 
@@ -72,7 +73,9 @@ group :test do
   # Use system testing [https://guides.rubyonrails.org/testing.html#system-testing]
   gem "capybara"
   gem "selenium-webdriver"
-
+  gem 'mocha'
 end
 gem 'devise'
 gem 'pagy'
+gem 'smarter_csv', '~> 1.12', '>= 1.12.1'
+gem 'sidekiq', '~> 7.1', '>= 7.1.2'
