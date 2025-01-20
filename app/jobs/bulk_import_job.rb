@@ -25,28 +25,28 @@ class BulkImportJob < ApplicationJob
         end
       end
 
-      NotifcationChannel.broadcast_to(
+      NotificationChannel.broadcast_to(
         user,
         { message: "#{file_name} file is processed with #{invalid_rows} invalid rows.", success: true}
       )
 
     rescue SmarterCSV::SmarterCSVException => e
 
-      NotifcationChannel.broadcast_to(
+      NotificationChannel.broadcast_to(
         user,
         { message: "Error while processing file #{file_name}. Error: #{e.message}", success: false }
       )
 
     rescue ActiveRecord::StatementInvalid => e
 
-      NotifcationChannel.broadcast_to(
+      NotificationChannel.broadcast_to(
         user,
         { message: "Error while inserting the records from file #{file_name}. Error: #{e.message}", success: false }
       )
 
     rescue StandardError => e
 
-      NotifcationChannel.broadcast_to(
+      NotificationChannel.broadcast_to(
         user,
         { message: "Unexpected error while processing file #{file_name}. Error: #{e.message}", success: false }
       )
