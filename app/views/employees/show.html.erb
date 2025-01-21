@@ -1,18 +1,21 @@
 <table class="table">
   <tr>
     <th>Name</th>
-    <td><%= @employee.dig("name") %></td>
+    <td><%= @employee.name %></td>
   </tr>
   <tr>
     <th>Position</th>
-    <td><%= @employee.dig("position") %></td>
+    <td><%= @employee.position %></td>
   </tr>
   <tr>
     <th>Salary</th>  
-    <td><%= @employee.dig("salary") %></td>
+    <td><%= @employee.salary %></td>
   </tr>
   <tr>
     <th>Date of Birth</th>  
-    <td><%= @employee.dig("date_of_birth") %></td>
+    <td><%= @employee.date_of_birth %></td>
   </tr>
 </table>
+
+<%= link_to "Edit this employee", edit_employee_path(@employee.id) %> |
+<%= link_to "Back to employees", employees_path %>

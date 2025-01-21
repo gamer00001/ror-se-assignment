@@ -1,0 +1,11 @@
+<div id="<%= dom_id employee %>">
+  <tr>
+    <th scope="row"><%= employee.id %></th>
+    <td><%= employee.name %></td>
+    <td><%= employee.salary %></td>
+    <td><%= employee.position %></td>
+    <td><%= employee.date_of_birth %></td>
+    <td><%= link_to 'Edit', edit_employee_path(employee.id) %> </td>
+    <td><%= link_to 'Show', employee_path(employee.id) %> </td>
+  </tr>
+</div>

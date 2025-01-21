@@ -1,89 +1,52 @@
-require 'net/http'
-require 'net/https'
-
 class EmployeesController < ApplicationController
   before_action :authenticate_user!
-  
-    def index
-      if params[:page].present?
-        uri = URI("https://dummy-employees-api-8bad748cda19.herokuapp.com/employees?page=#{params[:page]}")
-      else
-        uri = URI('https://dummy-employees-api-8bad748cda19.herokuapp.com/employees')
-      end
-      @response = Net::HTTP.get(uri)
-      @employees = JSON.parse(@response)
+  before_action :employee_service
+  before_action :set_employee, only: %i[ show edit new create update]
+
+  def index
+    page = params[:page].presence
+    employee_data = employee_service.fetch_employees(page)
+    @meta = employee_data["meta"]
+    @employees  = employee_data["data"].map {|e| Employee.new(e) }
+  end
+
+  def create
+    if @employee.valid?
+      new_employee = employee_service.create_employee(employee_params)
+      @employee = Employee.new(new_employee)
+      redirect_to employee_path(@employee.id)
+    else
+      render :new, status: :unprocessable_entity
     end
-  
-    def edit
-      uri = URI("https://dummy-employees-api-8bad748cda19.herokuapp.com/employees/#{params[:id]}")
-      @response = Net::HTTP.get(uri)
-      @employee = JSON.parse(@response)
+  end
+
+  def update
+    if @employee.valid?
+      updated_employee = employee_service.update_employee(params[:id], employee_params)
+      @employee = Employee.new(updated_employee)
+      redirect_to employee_path(@employee.id)
+    else
+      render :edit, status: :unprocessable_entity
     end
+  end
 
-    def show
-      uri = URI("https://dummy-employees-api-8bad748cda19.herokuapp.com/employees/#{params[:id]}")
-      @response = Net::HTTP.get(uri)
-      @employee = JSON.parse(@response)
-    end
+  private
 
-    def create
-      uri = URI("https://dummy-employees-api-8bad748cda19.herokuapp.com/employees/#{params[:id]}")
+  def employee_service
+    employee_service ||= EmployeeService.new
+  end
 
+  def set_employee
+    @employee ||= if ["create", "update"].include?(action_name)
+                    Employee.new(employee_params.merge(id: params[:id]))
+                  elsif params[:id].present?
+                    Employee.new(employee_service.fetch_employee(params[:id]))
+                  else
+                    Employee.new
+                  end
+  end
 
-      http = Net::HTTP.new(uri.host, uri.port)
-
-      http.use_ssl = (uri.scheme == 'https')
-
-      request = Net::HTTP::Post.new(uri.path)
-
-      request['Content-Type'] = 'application/json'
-
-      body = {
-        "name": params[:name],
-        "position": params[:position],
-        "date_of_birth": params[:date_of_birth],
-        "salary": params[:salary]
-      }.to_json
-      request.body = body
-
-      response = http.request(request)
-
-      puts "Response Code: #{response.code}"
-      puts "Response Body: #{response.body}"
-
-      @employee = JSON.parse(response.body)
-
-      redirect_to employee_path(@employee.dig("id"))
-    end
-  
-    def update
-
-      uri = URI("https://dummy-employees-api-8bad748cda19.herokuapp.com/employees/#{params[:id]}")
-
-
-      http = Net::HTTP.new(uri.host, uri.port)
-
-      http.use_ssl = (uri.scheme == 'https')
-
-      request = Net::HTTP::Put.new(uri.path)
-
-      request['Content-Type'] = 'application/json'
-
-      body = {
-        "name": params[:name],
-        "position": params[:position],
-        "date_of_birth": params[:date_of_birth],
-        "salary": params[:salary]
-      }.to_json
-      request.body = body
-
-      response = http.request(request)
-
-      puts "Response Code: #{response.code}"
-      puts "Response Body: #{response.body}"
-
-      @employee = JSON.parse(response.body)
-
-      redirect_to edit_employee_path(@employee.dig("id"))
-    end  
+  def employee_params
+    params.require(:employee).permit(:name, :position, :date_of_birth, :salary, :id)
+  end
 end
