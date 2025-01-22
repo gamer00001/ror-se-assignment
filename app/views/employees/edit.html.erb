@@ -1,10 +1,10 @@
 <div class="container">
-<h1>Editing Employee</h1>
-<%= render "form", employee: @employee %>
+  <h1>Editing Employee</h1>
+  <%= render "form", employee: @employee %>
 
-<br>
-<div>
-  <%= link_to "Show", employee_path(@employee.id) %> |
-  <%= link_to "Back to employee list", employees_path %>
-</div>
+  <br>
+  <div>
+      <%= link_to "Show", employee_path(@employee.id || params[:id]) %> |
+      <%= link_to "Back to employee list", employees_path %>
+  </div>
 </div>

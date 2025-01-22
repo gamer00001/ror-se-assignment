@@ -17,5 +17,5 @@
   </tr>
 </table>
 
-<%= link_to "Edit this employee", edit_employee_path(@employee.id) %> |
+<%= link_to "Edit this employee", edit_employee_path(@employee.id || params[:id]) %> |
 <%= link_to "Back to employees", employees_path %>

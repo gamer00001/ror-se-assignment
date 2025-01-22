@@ -1,33 +1,28 @@
 class EmployeesController < ApplicationController
   before_action :authenticate_user!
   before_action :employee_service
-  before_action :set_employee, only: %i[ show edit new create update]
+  before_action :set_employee, only: %i[ show edit new]
 
   def index
     page = params[:page].presence
-    employee_data = employee_service.fetch_employees(page)
-    @meta = employee_data["meta"]
-    @employees  = employee_data["data"].map {|e| Employee.new(e) }
+    @employees, @meta = employee_service.employee_list(page).values_at(:employees, :meta)
+  rescue EmployeeApiError => e
+    @employees = []
+    handle_exception(e)
   end
 
   def create
-    if @employee.valid?
-      new_employee = employee_service.create_employee(employee_params)
-      @employee = Employee.new(new_employee)
-      redirect_to employee_path(@employee.id)
-    else
-      render :new, status: :unprocessable_entity
-    end
+    @employee = employee_service.create_employee(employee_params)
+    redirect_to employee_path(@employee.id)
+  rescue EmployeeApiError => e
+    handle_exception(e)
   end
 
   def update
-    if @employee.valid?
-      updated_employee = employee_service.update_employee(params[:id], employee_params)
-      @employee = Employee.new(updated_employee)
-      redirect_to employee_path(@employee.id)
-    else
-      render :edit, status: :unprocessable_entity
-    end
+    @employee = employee_service.update_employee(params[:id], employee_params)
+    redirect_to employee_path(@employee.id)
+  rescue EmployeeApiError => e
+    handle_exception(e)
   end
 
   private
@@ -37,16 +32,36 @@ class EmployeesController < ApplicationController
   end
 
   def set_employee
-    @employee ||= if ["create", "update"].include?(action_name)
-                    Employee.new(employee_params.merge(id: params[:id]))
-                  elsif params[:id].present?
-                    Employee.new(employee_service.fetch_employee(params[:id]))
+    @employee ||= if params[:id].present?
+                    employee_service.retrieve_employee(params[:id])
                   else
                     Employee.new
                   end
+  rescue EmployeeApiError => e
+    handle_exception(e)
+  end
+
+  def handle_exception(error)
+    parsed_data = JSON.parse(error.message)
+    @errors = parsed_data['errors']
+    employee_data = parsed_data['employee'].except("errors", "validation_context")
+    @employee = Employee.new(employee_data)
+
+    render render_view, status: :unprocessable_entity
+  end
+
+  def render_view
+    case action_name
+    when 'create'
+      :new
+    when 'update'
+      :edit
+    else
+      action_name.to_sym
+    end
   end
 
   def employee_params
-    params.require(:employee).permit(:name, :position, :date_of_birth, :salary, :id)
+    params.require(:employee).permit(:name, :position, :date_of_birth, :salary, :id).merge(id: params[:id])
   end
 end
