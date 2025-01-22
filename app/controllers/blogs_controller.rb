@@ -62,7 +62,7 @@ class BlogsController < ApplicationController
   end
 
   def import
-    file = params[:attachment]
+    file = blog_params[:attachment]
     data = CSV.parse(file.to_io, headers: true, encoding: 'utf8')
     # Start code to handle CSV data
     ActiveRecord::Base.transaction do
@@ -82,6 +82,6 @@ class BlogsController < ApplicationController
 
     # Only allow a list of trusted parameters through.
     def blog_params
-      params.require(:blog).permit(:title, :body, :user_id)
+      params.require(:blog).permit(:title, :body, :user_id, :attachment)
     end
 end

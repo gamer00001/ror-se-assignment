@@ -1,35 +1,34 @@
-<div class="container">
-  <h1>Employees</h1>
+<div class="container mt-5">
+  <div class="d-flex justify-content-between">
+    <div>
+        <h1 class="mb-0">Employees</h1>
+    </div>
+    <div>
+      <a href="<%= new_employee_path %>" class="btn btn-primary">Add Employee</a>
+    </div>
+  </div>
+  <div class="table-responsive">
+    <table class="table">
+      <thead>
+        <tr>
+          <th scope="col">#</th>
+          <th scope="col">Name</th>
+          <th scope="col">Salary</th>
+          <th scope="col">Position</th>
+          <th scope="col">Date Of Birth</th>
+          <th colspan="2" scope="col">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @employees.dig("data").each do |e| %>
+          <%= render partial: 'employee', locals: { e: e } %>
+        <% end %>
+      </tbody>
+    </table>
 
-  <table class="table">
-    <thead>
-      <tr>
-        <th scope="col">#</th>
-        <th scope="col">Name</th>
-        <th scope="col">Salary</th>
-        <th scope="col">Position</th>
-        <th scope="col">Date Of Birth</th>
-        <th colspan="2" scope="col">Actions</th>
-      </tr>
-    </thead>
-    <tbody>
-      <% @employees.dig("data").each do |e| %>
-      <tr>
-        <th scope="row"><%= e.dig("id") %></th>
-        <td><%= e.dig("name") %></td>
-        <td><%= e.dig("salary") %></td>
-        <td><%= e.dig("position") %></td>
-        <td><%= e.dig("date_of_birth") %></td>
-        <td><%= link_to 'Edit', edit_employee_path(e["id"]) %> </td>
-        <td><%= link_to 'Show', employee_path(e["id"]) %> </td>
-  
-      </tr>
-      <% end %>
-    </tbody>
-  </table>
-
-  <%= link_to 'First Page', employees_path(page: 1) %> |
-  <%= link_to 'Next Page', employees_path(page: @employees.dig("meta","next_page")) %> |
-  <%= link_to 'Previous Page', employees_path(page: @employees.dig("meta","prev_page")) %> |
-  <%= link_to 'Last Page', employees_path(page: @employees.dig("meta","total_pages")) %>
+    <%= link_to 'First Page', employees_path(page: 1) %> |
+    <%= link_to 'Next Page', employees_path(page: @employees.dig("meta","next_page")) %> |
+    <%= link_to 'Previous Page', employees_path(page: @employees.dig("meta","prev_page")) %> |
+    <%= link_to 'Last Page', employees_path(page: @employees.dig("meta","total_pages")) %>
+  </div>
 </div>

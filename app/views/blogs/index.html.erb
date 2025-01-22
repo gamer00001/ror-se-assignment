@@ -1,27 +1,53 @@
-<p style="color: green"><%= notice %></p>
-
-
-<div class="container" id="blogs">
-<h1>Blogs</h1>
-
-<table class="table">
-  <thead>
-    <tr>
-      <th scope="col">#</th>
-      <th scope="col">Title</th>
-      <th scope="col">Body</th>
-      <th scope="col">User</th>
-      <th colspan="2" scope="col">Actions</th>
-    </tr>
-  </thead>
-  <tbody>
-  <% @blogs.each do |blog| %>
-   <%= render blog %>  
-  <% end %>
-  </tbody>
-</table>
-<%== pagy_bootstrap_nav(@pagy) %>
-
+<div class="container mt-5" id="blogs">
+  <div class="d-flex justify-content-between">
+    <div class="left-items">
+        <h1 class="mb-0">Blogs</h1>
+    </div>
+    <div class="right-items">
+    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal">
+        Import Blogs
+      </button>
+      <a href="<%= new_blog_path %>" class="btn btn-primary">Add Blog</a>
+    </div>
+  </div>
+  <div class="table-responsive">
+    <table class="table">
+        <thead>
+            <tr>
+                <th scope="col">#</th>
+                <th scope="col">Title</th>
+                <th scope="col">Body</th>
+                <th scope="col">User</th>
+                <th colspan="2" scope="col">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            <%= render @blogs %>
+        </tbody>
+    </table>
+    <br />
+    <%== pagy_bootstrap_nav(@pagy) %>
+  </div>
 </div>
 
 
+<!-- Modal -->
+<div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="exampleModalLabel">Import Blogs</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <%= form_with(model: Blog.new, url: import_blogs_path, method: :post, local: true) do |form| %>
+          <div class="modal-body">
+            <%= form.file_field :attachment, required: true, accept: '.csv' %>
+          </div>
+          <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+              <%= form.submit "Save", class: "btn btn-primary" %>
+          </div>
+        <% end %>
+      </div>
+    </div>
+</div>

@@ -16,3 +16,7 @@
     <td><%= @employee.dig("date_of_birth") %></td>
   </tr>
 </table>
+
+
+<%= link_to "Edit this employee", edit_employee_path(@employee.dig('id')) %> |
+<%= link_to "Back to employees", employees_path %>

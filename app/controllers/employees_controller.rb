@@ -26,6 +26,10 @@ class EmployeesController < ApplicationController
       @employee = JSON.parse(@response)
     end
 
+    def new
+      @employee = {}
+    end
+
     def create
       uri = URI("https://dummy-employees-api-8bad748cda19.herokuapp.com/employees/#{params[:id]}")
 
